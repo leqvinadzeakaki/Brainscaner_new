@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ბიზნეს იდეის ანალიზი</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ბიზნეს იდეის ანალიზი</h1>
+      <p>შეიყვანეთ თქვენი იდეა ტექსტის სახით ან ატვირთეთ PDF/PPTX ფაილი, რომ მიიღოთ დეტალური შეფასება AI-სგან.</p>
+    </div>
+
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error-box">
+      <p>{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="idea-form">
+      <textarea name="text_idea" rows="8" placeholder="მაგ: შევქმნათ აპლიკაცია, რომელიც ფერმერებს დაეხმარება ამინდის პროგნოზირებაში..."></textarea>
+
+      <div class="form-actions">
+        <!-- File Upload Section -->
+        <div class="file-upload-wrapper">
+          <label for="file-upload" class="file-upload-label" title="ფაილის ატვირთვა (.pdf, .pptx)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>ფაილის დამატება</span>
+          </label>
+          <input type="file" id="file-upload" name="file" accept=".pdf,.pptx" onchange="updateFileName(this)">
+          <span id="file-name-display"></span>
+
+          <!-- Google Drive Link Display -->
+          {% if drive_link %}
+            <span class="drive-link-display">
+              📎 <a href="{{ drive_link }}" target="_blank">ატვირთული ფაილის ნახვა</a>
+            </span>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="submit-button">ანალიზი</button>
+      </div>
+    </form>
+    <!-- Loading Indicator -->
+<div id="loading-indicator" style="display:none; margin-top: 1rem;">
+  <div style="background:#eee; height:24px; border-radius:12px; overflow:hidden;">
+    <div id="progress-bar" style="height:100%; width:0%; background:#4CAF50; text-align:center; color:white; line-height:24px; transition: width 0.3s;">0%</div>
+  </div>
+  <p style="margin-top:0.5rem;">გთხოვთ დაიცადოთ, მიმდინარეობს ანალიზი...</p>
+</div>
+
+
+    <!-- Analysis Result Display -->
+    {% if result %}
+    <div class="result-box">
+      <h3>🔍 ანალიზის შედეგი:</h3>
+      <pre>{{ result }}</pre>
+    </div>
+    {% endif %}
+
+  </div>
+
+ <script>
+  function updateFileName(input) {
+    const fileNameDisplay = document.getElementById('file-name-display');
+    if (input.files.length > 0) {
+      fileNameDisplay.textContent = `არჩეული ფაილი: ${input.files[0].name}`;
+    } else {
+      fileNameDisplay.textContent = '';
+    }
+  }
+
+  document.querySelector('.idea-form').addEventListener('submit', function(e) {
+    const loadingDiv = document.getElementById("loading-indicator");
+    const progressBar = document.getElementById("progress-bar");
+
+    loadingDiv.style.display = "block";
+    progressBar.style.width = "0%";
+    progressBar.textContent = "0%";
+
+    let percent = 0;
+    const interval = setInterval(() => {
+      if (percent < 99) {
+        percent += Math.floor(Math.random() * 3);  // ნელა ან სწრაფად ივსება
+        if (percent > 99) percent = 99;
+        progressBar.style.width = percent + "%";
+        progressBar.textContent = percent + "%";
+      }
+    }, 200);
+
+    // form-ის გაგზავნის შემდეგ როცა ახალი გვერდი ჩაიტვირთება, interval გაუქმდება ავტომატურად
+  });
+</script>
+
+{% if drive_link %}
+
+{% endif %}
+
+
+    {% if history %}
+    <div class="history-box" style="margin-top:2rem; padding:1rem; background:#f7f7f7; border:1px solid #ccc; border-radius:6px;">
+      <h3>📚 ატვირთული ფაილების ისტორია</h3>
+      <ul style="list-style:none; padding-left:0;">
+        {% for item in history %}
+          <li style="margin-bottom: 0.5rem;">
+            📎 <a href="{{ item.drive_link }}" target="_blank">{{ item.filename }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+</body>
+</html>
