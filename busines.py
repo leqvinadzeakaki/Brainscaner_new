@@ -27,7 +27,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # --- Gemini API Config ---
 # ENV-ში უნდა გქონდეს GEMINI_API_KEY=<შენი key>
-genai.configure(api_key=os.environ["AIzaSyBz7yRvZWZPEuV0cp1925vqOe0LUF8agwc"])
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # --- Helpers ---
