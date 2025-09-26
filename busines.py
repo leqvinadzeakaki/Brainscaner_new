@@ -10,6 +10,39 @@ import google.oauth2.credentials
 import google.auth.transport.requests
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import os, logging, traceback
+from flask import Flask, request, Response
+
+app = Flask(__name__, static_folder="static", template_folder="templates")
+
+# --- კვაზი-ჰელਥჩეკი
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+# --- მოთხოვნების ლოგირება (ნახავ ზუსტ ბილიკს/მეთოდს, რაზე ეცემა)
+@app.before_request
+def _log_request():
+    app.logger.debug(f"REQ {request.method} {request.path}")
+
+# --- კრიტიკული ENV-ების შემოწმება (დააბრუნებს 503-ს, თუ კონფიგი აკლია!)
+REQUIRED_VARS = ["SECRET_KEY"]
+# ჩასვი რეალურად გამოყენებული ცვლადები:
+REQUIRED_VARS += ["GEMINI_API_KEY", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "OAUTH_REDIRECT_URI"]
+
+@app.before_request
+def _check_envs():
+    missing = [k for k in REQUIRED_VARS if not os.getenv(k)]
+    if missing and request.path not in ("/healthz",):
+        return Response(f"Service not configured, missing: {missing}", status=503, mimetype="text/plain")
+
+# --- უნივერსალური შეცდომის დამჭერი (დროებით, Debug-ისთვის)
+@app.errorhandler(Exception)
+def _handle_any(e):
+    logging.exception("UNHANDLED EXCEPTION")
+    # დროებით დაგვიბრუნოს ტექსტურად; მერე ამოიღებ
+    return Response(f"Internal error: {e}", status=500, mimetype="text/plain")
+
 
 # --- Flask Config ---
 load_dotenv()
